@@ -10,5 +10,4 @@ def main():
 
     print("Game has started. Waiting for players to join")
 
-
 main()
