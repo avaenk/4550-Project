@@ -52,7 +52,7 @@ def run_server():
     
     while True:
          # new connection from player
-        connection_socket = server_socket.accept()
+        connection_socket, addr = server_socket.accept()
 
         with player_lock: #they can now pick their username or have a generic Player1..Player2..PlayerN
             connection_socket.send("Enter desired username or enter * to have one chosen for you: ".encode())
