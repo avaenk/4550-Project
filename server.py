@@ -51,7 +51,7 @@ def run_server():
     server_socket.listen(7)  #max players 7
     
     while True:
-         # new connection from player
+        # new connection from player
         connection_socket, addr = server_socket.accept()
 
         with player_lock: #they can now pick their username or have a generic Player1..Player2..PlayerN

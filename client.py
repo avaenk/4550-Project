@@ -23,7 +23,7 @@ def client():
 
     while True:#send the player message when we implement more this will be where they are putting their answer. 
         message = input("You: ")  
-        client_socket.send(message.encode())  
+        client_socket.send(message.encode())#this is where the response is being saved -- use this in game class.   
         
         if message.lower() == 'exit':
             break
