@@ -2,24 +2,27 @@ from socket import *
 
 def client():
     serverName = '127.0.0.1'
-    serverPort = 13011
+    serverPort = 13009
 
-    #socket for the client & connect to server using IP and port number
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((serverName, serverPort))
 
-    #start message from server to be displayed to each new player(client)
+    username_message = clientSocket.recv(1024).decode()
+    print(username_message)
+
+    username = input() 
+    clientSocket.send(username.encode()) 
+
     start_message = clientSocket.recv(1024).decode()
     print(start_message)
 
     while True:
-        message = input("You: ") # change this to playername i.e. player  1 -- agian needs to not send to self, it currently does. 
-        clientSocket.send(message.encode())#send player message to server -- it also needs to be sent to other clients ADD 
+        message = input("You: ")  
+        clientSocket.send(message.encode())  
         
         if message.lower() == 'exit':
             break
 
-        #servers response to previous message 
         response = clientSocket.recv(1024).decode()
         print(response)
 
