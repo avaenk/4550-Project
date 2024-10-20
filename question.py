@@ -1,6 +1,13 @@
+import requests
+import random
+import json
+import os
+
 class question:
-    def __init__ (self, pointValue):
-        self.generateQuestion()
+    def __init__ (self, topic, pointValue):
+        self.question = self.generateQuestion()
+        self.answer = ""
+        self.topic = topic
         self.pointValue = pointValue
 
     def getQuestion(self):
@@ -9,72 +16,40 @@ class question:
         return self.answer
     
     def generateQuestionAnswer(self):
-        self.question = "What color is the sky?"
-        self.answer = "blue"
+        API_URL = "https://newsapi.org/v2/everything"
+        API_KEY = "dd10187aee144736babe2ee903c573ba"
+
+        # Parameters for the API request
+        params = {
+            "country": "us",
+            "apiKey": API_KEY,
+            "q": self.topic
+        }
+
+        responseDict = 0
+
+        if os.path.exists(f"{self.topic}.json"): #if an API call on this topic has already been made,don't make another
+            with open(f"{self.topic}.json", "r") as file:
+                responseDict = json.load(file)
+        else: 
+            response = requests.get(API_URL, params=params)
+            if response.status_code == 200:
+                responseDict = response.json()
+                with open(f"{self.topic}.json", "w") as outfile:
+                    json.dump(responseDict, outfile)
+            else:
+                print(f"Error: {response.status_code}")
+
+        numArticles = len(responseDict["articles"])
+        if numArticles < 3 :
+            return -1 #if not enough could be collected on the topic (or the call failed) signal with -1 to try again
+        
+        j = random.randrange(0, numArticles)
+        self.question = responseDict["articles"][j]["title"]
+        #still need to parse headline and form the actual question/answer
     
     def checkAnswer(self, userAnswer):
         if self.answer.lower() == userAnswer.lower():
             return self.pointValue
         else:
             return 0
-
-class dateQuestion(question):
-    def __init__(self, pointValue):
-        self.generateQuestionAnswer()
-        super.pointValue = pointValue
-        
-    def generateQuestionAnswer(self):
-        self.question = "What date was the Declaration of Independence signed? MM/DD/YYYY"
-        self.answerMonth = 8
-        self.answerDay = 2
-        self.answerYear = 1776
-
-    def checkAnswer(self, userAnswer):
-        score = 0
-        userMonth = eval(userAnswer[0:2])
-        userDay = eval(userAnswer[3:5])
-        userYear = eval(userAnswer[6:])
-        score = score + abs(self.answerMonth - userMonth)
-        score = score + abs(self.answerDay - userDay)
-        score = score + abs(self.answerYear - userYear)
-        return score
-    
-class peopleQuestion(question):
-    def __init__(self, pointValue):
-        self.generateQuestionAnswer()
-        super.pointValue = pointValue
-    
-    def generateQuestionAnswer(self):
-        self.question = "Who was the first president? FirstName LastName"
-        self.answer = ["George", "Washington"]
-    
-    def checkAnswer(self, userAnswer):
-        score = 0
-        userAnswerArr = userAnswer.split()
-        for i in range(len(self.answer)):
-            if self.answer[i].lower() == userAnswer[i].lower():
-                score = score + self.pointValue
-            else:
-                for a in userAnswer:
-                    if self.answer[i].lower() == a.lower():
-                        score = score + self.pointValue/2 # half points for having the right name in there somewhere
-
-class placeQuestion(question):
-    def __init__(self, pointValue):
-        self.generateQuestionAnswer()
-        super.pointValue = pointValue
-    
-    def generateQuestionAnswer(self):
-        self.question = "What is the capital of Arkansaa"
-        self.answer = ["Little Rock"]
-    
-    def checkAnswer(self, userAnswer):
-        score = 0
-        userAnswerArr = userAnswer.split()
-        for i in range(len(self.answer)):
-            if self.answer[i].lower() == userAnswer[i].lower():
-                score = score + self.pointValue
-            else:
-                for a in userAnswer:
-                    if self.answer[i].lower() == a.lower():
-                        score = score + self.pointValue/2 # half points for having the right name in there somewhere

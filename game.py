@@ -43,9 +43,11 @@ def run_game():
     for round_num in range(3):
         topic = choose_topic
         print(f"Staring Round {round_num+1}: Topic is {topic}")
+
+        cache = []
         for qnum in range(3):
             print(f"Question {qnum}...")
-            question_obj = choose_question(topic)
+            question_obj = choose_question(topic, seed)
             ask_question(question_obj)
         print(f"Round {round_num+1} complete")
     print("Game over! Final scores: ")
@@ -56,9 +58,9 @@ def choose_topic():
         topics = f.readlines()
     return random.choice(topics).strip() #chooses random topics, gets rid of newline
 
-def choose_question(topic):
+def choose_question(topic, seed):
     point_value = 10 #example num points, can change
-    return question(topic,point_value)
+    return question(topic, point_value, seed)
 
 def ask_question(question_obj):
     #notify players of question
@@ -89,7 +91,7 @@ def ask_question(question_obj):
 
     # give each player feedback
     correct_ans = question_obj.getAnswer
-    score = question.obj.checkAnswer(answer):
+    score = question.obj.checkAnswer(answer)
     for player in players: 
         if player.username in answers: #if player answered
             answer = answers[player.username]
