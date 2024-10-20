@@ -47,7 +47,7 @@ def run_game():
         cache = []
         for qnum in range(3):
             print(f"Question {qnum}...")
-            question_obj = choose_question(topic, seed)
+            question_obj = choose_question(topic)
             ask_question(question_obj)
         print(f"Round {round_num+1} complete")
     print("Game over! Final scores: ")
@@ -58,9 +58,9 @@ def choose_topic():
         topics = f.readlines()
     return random.choice(topics).strip() #chooses random topics, gets rid of newline
 
-def choose_question(topic, seed):
+def choose_question(topic):
     point_value = 10 #example num points, can change
-    return question(topic, point_value, seed)
+    return question(topic, point_value)
 
 def ask_question(question_obj):
     #notify players of question
