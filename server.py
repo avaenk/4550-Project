@@ -4,6 +4,7 @@ import threading
 player_count = 0
 player_lock = threading.Lock() 
 clients = [] 
+client_usernames = {} # dictonary of usernames that correspond w sockets
 
 
 #handle_client: this will be for the communication for the server one the specfic client
@@ -63,7 +64,8 @@ def run_server():
             else:
                 player_name = user_message  
             
-            clients.append(connection_socket)  
+            clients.append(connection_socket) 
+            client_usernames[connection_socket] = player_name #store name in dictionary
 
          # new thread to manage the new connections messages 
         client_thread = threading.Thread(target=handle_client, args=(connection_socket, player_name))
