@@ -41,7 +41,7 @@ def start_game():
 def run_game():
     start_game()
     for round_num in range(3):
-        topic = choose_topic
+        topic = choose_topic()
         print(f"Staring Round {round_num+1}: Topic is {topic}")
 
         cache = []
