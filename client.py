@@ -1,34 +1,30 @@
-from socket import *
+import socket
 
+HOST = '127.0.0.1'
+PORT = 13009
 
-#client: starts the connection with the server --> from the client side 
-# also intercats with the server, here is where we get the username, although we are saving it in the server 
-#we are handling the clients user input here 
 def client():
-    server_name = '127.0.0.1'
-    server_port = 13009
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((HOST, PORT))
 
-    client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect((server_name, server_port))
-
+    # Get the username message, send back the username, and store it
     username_message = client_socket.recv(1024).decode()
-    print(username_message) 
-    #where the client is prompted to choose username or have generic one
-
-    username = input() 
-    client_socket.send(username.encode()) 
+    print(username_message)
+    username = input()
+    client_socket.send(username.encode())
 
     start_message = client_socket.recv(1024).decode()
     print(start_message)
 
-    while True:#send the player message when we implement more this will be where they are putting their answer. 
-        message = input("You: ")  
-        client_socket.send(message.encode())#this is where the response is being saved -- use this in game class.   
-        
+    # Use the provided username for prompts
+    while True:
+        message = input(f"{username}: ")
+        client_socket.send(message.encode())
+
         if message.lower() == 'exit':
             break
 
-        #servers reponse to message -- here is where we would have the response of correct/incorrect etc. 
+        # Wait to receive the synchronized response with newlines
         response = client_socket.recv(1024).decode()
         print(response)
 

@@ -3,7 +3,7 @@ from threading import Thread
 import time
 import random #selecting topic for rounds
 from socket import *
-from question import question,peopleQuestion, dateQuestion, placeQuestion
+from question import question
 from server import clients # imports clients
 from server import client_usernames #import client usernames
 

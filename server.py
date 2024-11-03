@@ -2,74 +2,82 @@ from socket import *
 import threading
 
 player_count = 0
-player_lock = threading.Lock() 
-clients = [] 
-client_usernames = {} # dictonary of usernames that correspond w sockets
+player_lock = threading.Lock()
+broadcast_lock = threading.Lock() 
+clients = []
+client_usernames = {}
+all_answers = {}
+all_answers_event = threading.Event()
 
+# Broadcast all answers once all players have submitted
+def broadcast_round_results():
+    with broadcast_lock:  
+        round_message = "Player answers for this round are:\n"
+        for player, answer in all_answers.items():
+            round_message += f"{player}: {answer}\n" 
 
-#handle_client: this will be for the communication for the server one the specfic client
-#does so by running a diff thread for each client and this lets our server handle multiple clients at one.
+        # Send the combined message to all clients
+        for client in clients:
+            client.send(round_message.encode())
+
+# Handle communication with each specific client
 def handle_client(connection_socket, player_name):
-    print("{} has joined the game.".format(player_name))
+    global player_count
+    print(f"{player_name} has joined the game.")
     connection_socket.send("Welcome to the Trivia Game! Type 'exit' to disconnect.".encode())
 
-    global player_count
     while True:
         try:
-            message = connection_socket.recv(1024).decode()  
-            if not message:  
+            message = connection_socket.recv(1024).decode()
+            if not message:
+                break
+            if message.lower() == 'exit':
+                disconnect_player(connection_socket, player_name)
                 break
 
-            if message.lower() == 'exit':  #for players exiting game
-                print("{} has disconnected.".format(player_name))
-                with player_lock:
-                    player_count -= 1
-                    clients.remove(connection_socket)  
-                    connection_socket.close()  #lose the connection
-                break  
+            # Store answer
+            all_answers[player_name] = message
+            print(f"Received answer from {player_name}: {message}")
 
-            
-            print("{}: {}".format(player_name, message))#when the client sends message, this is when they can see the other clients message
-            #if they have no sent a message yet they cannot see all the other clients messages
-            for client in clients:
-                if client != connection_socket:  
-                    client.send("{}: {}".format(player_name, message).encode())
+            # Check if all players have answered
+            with player_lock:
+                if len(all_answers) == player_count:
+                    broadcast_round_results()  # Broadcast once all answers are collected
+                    all_answers.clear()  # Clear answers for next round
 
         except:
-            break  
+            break
+
     connection_socket.close()
 
+def disconnect_player(connection_socket, player_name):
+    print(f"{player_name} has disconnected.")
+    with player_lock:
+        global player_count
+        player_count -= 1
+        clients.remove(connection_socket)
+    connection_socket.close()
 
-#run_server: run_server will set up our server and accept the new client connections -- while keeping the max of 7 players
-#this is where the indiivdual threads to be used for handle_clienty will be created
-#basicially here we are initialzing the server and waiting/listening for connections from clients. 
 def run_server():
     global player_count
     server_port = 13009
     server_socket = socket(AF_INET, SOCK_STREAM)
     server_socket.bind(('', server_port))
-    
-    server_socket.listen(7)  #max players 7
-    
+    server_socket.listen(7)
+
     while True:
-        # new connection from player
         connection_socket, addr = server_socket.accept()
-
-        with player_lock: #they can now pick their username or have a generic Player1..Player2..PlayerN
+        with player_lock:
             connection_socket.send("Enter desired username or enter * to have one chosen for you: ".encode())
-            user_message = connection_socket.recv(1024).decode()  
-            player_count += 1 # updating player count when the new connection is added 
-            if user_message == '*':  
-                player_name = "Player {}".format(player_count)
-            else:
-                player_name = user_message  
-            
-            clients.append(connection_socket) 
-            client_usernames[connection_socket] = player_name #store name in dictionary
+            user_message = connection_socket.recv(1024).decode()
+            player_name = f"Player {player_count + 1}" if user_message == '*' else user_message
+            player_count += 1
 
-         # new thread to manage the new connections messages 
+            clients.append(connection_socket)
+            client_usernames[connection_socket] = player_name
+
         client_thread = threading.Thread(target=handle_client, args=(connection_socket, player_name))
         client_thread.start()
 
 if __name__ == "__main__":
-    run_server()  
+    run_server()
