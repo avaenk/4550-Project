@@ -79,5 +79,10 @@ def run_server():
         client_thread = threading.Thread(target=handle_client, args=(connection_socket, player_name))
         client_thread.start()
 
+# to get an accurate updated player count in main to trigger game
+def get_player_count():
+    global player_count
+    return player_count
+
 if __name__ == "__main__":
     run_server()
