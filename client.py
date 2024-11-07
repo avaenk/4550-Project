@@ -1,7 +1,7 @@
 import socket
 
 HOST = '127.0.0.1'
-PORT = 13009
+PORT = 13007
 
 def client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -10,23 +10,22 @@ def client():
     # Get the username message, send back the username, and store it
     username_message = client_socket.recv(1024).decode()
     print(username_message)
-    username = input()
+    username = input("Enter username: ")
     client_socket.send(username.encode())
 
-    start_message = client_socket.recv(1024).decode()
-    print(start_message)
-
-    # Use the provided username for prompts
+    # Main game loop - only prompt when receiving a specific input request
     while True:
-        message = input(f"{username}: ")
-        client_socket.send(message.encode())
+        server_message = client_socket.recv(1024).decode()
+        print(server_message)  # Display server's message
 
-        if message.lower() == 'exit':
+        # Only ask for input if the server message contains "Your answer:"
+        if "Your answer:" in server_message:
+            answer = input("Your answer: ")
+            client_socket.send(answer.encode())
+
+        # Exit condition if the game ends
+        if "Game over!" in server_message:
             break
-
-        # Wait to receive the synchronized response with newlines
-        response = client_socket.recv(1024).decode()
-        print(response)
 
     client_socket.close()
 
