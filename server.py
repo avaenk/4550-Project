@@ -1,63 +1,26 @@
 from socket import *
 import threading
 
-player_count = 0
-player_lock = threading.Lock()
-broadcast_lock = threading.Lock() 
 clients = []
 client_usernames = {}
-all_answers = {}
-all_answers_event = threading.Event()
 
-# Broadcast all answers once all players have submitted
-def broadcast_round_results():
-    with broadcast_lock:  
-        round_message = "Player answers for this round are:\n"
-        for player, answer in all_answers.items():
-            round_message += f"{player}: {answer}\n" 
+player_lock = threading.Lock()
+player_count = 0
 
-        # Send the combined message to all clients
-        for client in clients:
-            client.send(round_message.encode())
-
-# Handle communication with each specific client
-def handle_client(connection_socket, player_name):
+# Handle client connection setup only
+def handle_client_setup(connection_socket):
     global player_count
-    print(f"{player_name} has joined the game.")
-    connection_socket.send("Welcome to the Trivia Game! Type 'exit' to disconnect.".encode())
-
-    while True:
-        try:
-            message = connection_socket.recv(1024).decode()
-            if not message:
-                break
-            if message.lower() == 'exit':
-                disconnect_player(connection_socket, player_name)
-                break
-
-            # Store answer
-            all_answers[player_name] = message
-            print(f"Received answer from {player_name}: {message}")
-
-            # Check if all players have answered
-            with player_lock:
-                if len(all_answers) == player_count:
-                    broadcast_round_results()  # Broadcast once all answers are collected
-                    all_answers.clear()  # Clear answers for next round
-
-        except:
-            break
-
-    connection_socket.close()
-
-
-def disconnect_player(connection_socket, player_name):
-    print(f"{player_name} has disconnected.")
+    connection_socket.send("Enter desired username or enter * to have one chosen for you: ".encode())
+    user_message = connection_socket.recv(1024).decode().strip()
+    
     with player_lock:
-        global player_count
-        player_count -= 1
-        clients.remove(connection_socket)
-    connection_socket.close()
+        player_name = f"Player {player_count + 1}" if user_message == '*' else user_message
+        client_usernames[connection_socket] = player_name
+        player_count += 1
+
+    # Send a welcome message to acknowledge the setup; no prompt for input yet
+    connection_socket.send(f"Welcome to the Trivia Game, {player_name}! Please wait for the game to begin.\n".encode())
+    clients.append(connection_socket)
 
 def run_server():
     global player_count
@@ -66,21 +29,14 @@ def run_server():
     server_socket.bind(('', server_port))
     server_socket.listen(7)
 
+    print("Server started and awaiting player connections...")
+
     while True:
         connection_socket, addr = server_socket.accept()
-        with player_lock:
-            connection_socket.send("Enter desired username or enter * to have one chosen for you: ".encode())
-            user_message = connection_socket.recv(1024).decode()
-            player_name = f"Player {player_count + 1}" if user_message == '*' else user_message
-            player_count += 1
-
-            clients.append(connection_socket)
-            client_usernames[connection_socket] = player_name
-
-        client_thread = threading.Thread(target=handle_client, args=(connection_socket, player_name))
+        client_thread = threading.Thread(target=handle_client_setup, args=(connection_socket,))
         client_thread.start()
 
-# to get an accurate updated player count in main to trigger game
+# To get player count for game start check
 def get_player_count():
     global player_count
     return player_count
