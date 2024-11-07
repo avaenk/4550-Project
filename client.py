@@ -20,7 +20,7 @@ def client():
 
         # Only ask for input if the server message contains "Your answer:"
         if "Your answer:" in server_message:
-            answer = input("Your answer: ")
+            answer = input()
             client_socket.send(answer.encode())
 
         # Exit condition if the game ends

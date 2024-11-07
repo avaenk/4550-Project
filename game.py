@@ -28,20 +28,21 @@ def create_players():
         username = client_usernames.get(client_socket)
         players.append(Player(client_socket, username))
 
-def send_question(question):
+def send_question_to_all(question):
     for player in players:
-        # Send the question
+        # Send the question without any prompt
         player.socket.send(f"Question: {question}\n".encode())
 
-def prompt_for_answers():
+def prompt_for_answer():
     for player in players:
-        # Prompt each player explicitly after question is sent
+        # Send the answer prompt once to each player
         player.socket.send("Your answer: ".encode())
 
 def collect_answers():
     answers_dict = {}
     for player in players:
         try:
+            # Receive the answer from each player once
             answer = player.socket.recv(1024).decode().strip()
             answers_dict[player.username] = answer
         except:
@@ -56,19 +57,19 @@ def run_game():
         question = questions[round_num]
         correct_answer = answers[round_num]
 
-        # Step 1: Send the question first
-        send_question(question)
+        # Step 1: Send the question to all players
+        send_question_to_all(question)
 
         # Step 2: Delay to ensure question delivery
-        time.sleep(1)
+        time.sleep(1)  # Allows clients to process question before prompt
 
-        # Step 3: Prompt explicitly for answers
-        prompt_for_answers()
+        # Step 3: Prompt each player to answer only once
+        prompt_for_answer()
 
         # Step 4: Collect answers
         player_answers = collect_answers()
 
-        # Feedback and scoring
+        # Provide feedback and update scores
         for player in players:
             answer = player_answers.get(player.username, "No response")
             if answer.lower() == correct_answer.lower():
@@ -76,9 +77,9 @@ def run_game():
                 response = f"Correct! Your score: {player.score}\n"
             else:
                 response = f"Incorrect. Correct answer was '{correct_answer}'. Your score: {player.score}\n"
-            player.socket.send(response.encode())
+            player.socket.send(response.encode())  # Send feedback to each player
 
-        print(f"Round {round_num + 1} complete.")
+        print(f"Round {round_num + 1} complete.\n")
 
     # End game and display final scores
     print("Game over! Final scores:")
