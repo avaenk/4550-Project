@@ -3,6 +3,8 @@ from server import run_server, get_player_count
 from game import run_game
 import time
 
+# make clients reply "ready" once everyone replied ready start the game
+
 def main():
     #this will create a new thread to run the start server function froms server.py 
     #server can then run
@@ -19,10 +21,11 @@ def main():
             prev_curr_players = get_player_count() 
             print(f"Current number of players {get_player_count()}")
             print(f"You need {required_players-get_player_count()} more player(s)")
-        time.sleep(5)
+        time.sleep(1) #checks for new players every 1 second
         if (get_player_count() == required_players): # if you have the amount you need break and run game
             break
     
+
     run_game()    
 
 main()
