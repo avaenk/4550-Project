@@ -1,7 +1,7 @@
 import socket
 
 HOST = '127.0.0.1'
-PORT = 13007
+PORT = 13009
 
 def client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,7 +20,7 @@ def client():
 
         # Only ask for input if the server message contains "Your answer:"
         if "Your answer:" in server_message:
-            answer = input("Your answer: ")
+            answer = input()
             client_socket.send(answer.encode())
 
         # Exit condition if the game ends

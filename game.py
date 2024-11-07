@@ -1,4 +1,6 @@
 import time
+import random
+from Question import Question
 from server import clients, client_usernames
 
 questions = [
@@ -19,6 +21,7 @@ class Player:
         self.socket = socket
         self.username = username
         self.score = 0
+        self.best_round = 0
 
     def update_score(self, points):
         self.score += points
@@ -48,13 +51,26 @@ def collect_answers():
             answers_dict[player.username] = "No response"
     return answers_dict
 
+def choose_topic():
+    with open('topic.txt','r') as f:
+        topics = f.readlines()
+    return random.choice(topics).strip() #chooses random topics, gets rid of newline
+
 def run_game():
     print("Starting Trivia Game")
     create_players()
 
     for round_num in range(3):
-        question = questions[round_num]
-        correct_answer = answers[round_num]
+        topic = choose_topic()
+        #for player in players:
+        #    message = f"Starting Round {round_num+1}: Topic is {topic}"
+        #    player.socket.send(message.encode)
+
+        # question = questions[round_num]
+        # correct_answer = answers[round_num]
+        question_obj = Question("Taylor Swift",10)
+        question = question_obj.getQuestion()
+        correct_answer = question_obj.getAnswer()
 
         # Step 1: Send the question first
         send_question(question)

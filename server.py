@@ -61,7 +61,7 @@ def disconnect_player(connection_socket, player_name):
 
 def run_server():
     global player_count
-    server_port = 13007
+    server_port = 13009
     server_socket = socket(AF_INET, SOCK_STREAM)
     server_socket.bind(('', server_port))
     server_socket.listen(7)
