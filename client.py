@@ -1,7 +1,7 @@
 import socket
 
 HOST = '127.0.0.1'
-PORT = 13007
+PORT = 13009
 
 def client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
