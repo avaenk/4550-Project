@@ -3,13 +3,7 @@ import random
 from Question import Question
 from server import clients, client_usernames
 
-
-
-
-
-
 players = []
-
 
 class Player:
     def __init__(self, socket, username):
@@ -102,10 +96,24 @@ def run_game():
 
     # End game and display final scores
     print("Game over! Final scores:")
+    print("""
+   ╔════════════════════════════════════════════════════════════╗
+   ║                      📰 TRIVIA TIMES 📰                     ║
+   ║                  "All the Answers That Fit"                ║
+   ╚════════════════════════════════════════════════════════════╝
+
+     🎉 Thanks for Playing! 🎉
+     
+   ╔════════════════════════════════════╗
+   ║         Final Scores               ║
+   ╚════════════════════════════════════╝
+   """)
+
     for player in players:
         final_message = f"Final score for {player.username}: {player.score}\n"
         player.socket.send(final_message.encode())
         print(final_message)
+        #player.socket.close() NEED SOMETHING LIKE THIS BUT ITS BEING WEIRd 
 
 
 if __name__ == "__main__":
