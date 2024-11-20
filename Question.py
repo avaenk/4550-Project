@@ -59,8 +59,8 @@ class Question:
 
         answerIndex = -1
         for i in range(1, len(questionArr)): #find first proper noun
-            if len(questionArr[i]) > 0 and questionArr[i][0].isupper():
-                if questionArr[i-2] not in {".", "?", "!"} and questionArr[i].lower() not in {"the", "this", "in", "a", "an", "for", "that", "she", "he", "her", "it", "its", "his", "him", "hers", "them", "they"}:
+            if len(questionArr[i]) > 1 and questionArr[i][0].isupper():
+                if questionArr[i-2] not in {".", "?", "!"} and questionArr[i].lower() not in {"the", "when","then","this", "in", "a", "an", "for", "that", "she", "he", "her", "it", "its", "his", "him", "hers", "them", "they","yet","from","with","here","there"}:
                     answerIndex = i
                     break
 

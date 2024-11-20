@@ -1,4 +1,5 @@
 import socket
+import sys
 
 HOST = '127.0.0.1'
 PORT = 13009
@@ -27,7 +28,6 @@ def client():
         if "Game over!" in server_message:
             break
 
-    client_socket.close()
 
 if __name__ == "__main__":
     client()

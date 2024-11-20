@@ -113,7 +113,7 @@ def run_game():
         final_message = f"Final score for {player.username}: {player.score}\n"
         player.socket.send(final_message.encode())
         print(final_message)
-        #player.socket.close() NEED SOMETHING LIKE THIS BUT ITS BEING WEIRd 
+       
 
 
 if __name__ == "__main__":

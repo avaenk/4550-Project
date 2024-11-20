@@ -2,6 +2,7 @@ import threading
 from server import run_server, get_player_count
 from game import run_game
 import time
+import sys
 
 # make clients reply "ready" once everyone replied ready start the game
 
