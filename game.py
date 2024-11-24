@@ -1,5 +1,6 @@
 import time
 import random
+import threading
 from Question import Question
 from server import clients, client_usernames
 
@@ -34,14 +35,37 @@ def prompt_for_answers():
         player.socket.send("Your answer: ".encode())
 
 
-def collect_answers():
+def collect_answers_with_timer(timeout=60):
     answers_dict = {}
-    for player in players:
-        try:
-            answer = player.socket.recv(1024).decode().strip()
-            answers_dict[player.username] = answer
-        except:
-            answers_dict[player.username] = "No response"
+    lock = threading.Lock()
+    responses_received = threading.Event()
+
+    def collect_answers():
+        # Collect answers within the timeout window
+        for player in players:
+            try:
+                player.socket.settimeout(timeout) # ensures individual client socket reads respect the 1-minute limit.
+                answer = player.socket.recv(1024).decode().strip()
+                with lock:
+                    answers_dict[player.username] = answer
+            except:
+                with lock:
+                    answers_dict[player.username] = "timed out"
+        responses_received.set()
+
+    # Start the collection thread
+    collection_thread = threading.Thread(target=collect_answers)
+    collection_thread.start()
+
+    # Wait for the timeout
+    responses_received.wait(timeout)
+
+    # Fill in any unanswered players with "timed out"
+    with lock:
+        for player in players:
+            if player.username not in answers_dict:
+                answers_dict[player.username] = "timed out"
+
     return answers_dict
 
 
@@ -77,7 +101,7 @@ def run_game():
 
 
         # Step 4: Collect answers
-        player_answers = collect_answers()
+        player_answers = collect_answers_with_timer(timeout=60)
 
 
         # Feedback and scoring
@@ -86,6 +110,8 @@ def run_game():
             if answer.lower() == correct_answer.lower():
                 player.update_score(10)
                 response = f"Correct! Your score: {player.score}\n"
+            elif answer == "timed out":
+                response = f"You ran out of time! Your score: {player.score}\n"
             else:
                 response = f"Incorrect. Correct answer was '{correct_answer}'. Your score: {player.score}\n"
             player.socket.send(response.encode())
